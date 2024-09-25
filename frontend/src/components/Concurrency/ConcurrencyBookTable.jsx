@@ -1,28 +1,27 @@
-import {useState } from "react";
-import BookRow from "./BookRow";
-import TableHeader from "./TableHeader";
-import HeaderButtons from "./HeaderButtons";
-import Modal from "./Modal";
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import BookRow from './BookRow';
+import TableHeader from './TableHeader';
+import HeaderButtons from './HeaderButtons';
+import Modal from './Modal';
 
 const ConcurrencyBookTable = () => {
-  const [books, setBooks] = useState([
-    {
-      title: "Data Science and Machine Learning",
-      status: "Published",
-      concurrency: 1,
-    },
-    {
-      title: "The Applied Theatre Reader",
-      status: "Published",
-      concurrency: 1,
-    },
-  ]);
-  
+  const location = useLocation();
+  const [books, setBooks] = useState(location.state?.books || []);
+  const [premiumBooks, setPremiumBooks] = useState([]);
   const [isModalOpen, setModalOpen] = useState(false);
   const [bulkConcurrency, setBulkConcurrency] = useState("");
 
+  const bundleName = location.state?.bundle_name || ""; // Retrieve bundle name from state
+
+  // Filter premium books from the main books list
+  useEffect(() => {
+    const premiumOnlyBooks = books.filter((book) => book.is_premium);
+    setPremiumBooks(premiumOnlyBooks);
+  }, [books]);
+
   const updateConcurrency = (index, newConcurrency) => {
-    setBooks((prevBooks) => {
+    setPremiumBooks((prevBooks) => {
       const updatedBooks = [...prevBooks];
       updatedBooks[index] = {
         ...updatedBooks[index],
@@ -35,20 +34,23 @@ const ConcurrencyBookTable = () => {
   const handleBulkEdit = (newConcurrency) => {
     const numericValue = Number(newConcurrency);
     if (!isNaN(numericValue)) {
-      setBooks((prevBooks) =>
-        prevBooks.map((book) => ({
-          ...book,
-          concurrency: numericValue,
-        }))
-      );
+      const updatedBooks = premiumBooks.map((book) => ({
+        ...book,
+        concurrency: numericValue,
+      }));
+      setPremiumBooks(updatedBooks);
     }
+  };
+
+  const handleConcurrencyChange = (index, newConcurrency) => {
+    updateConcurrency(index, newConcurrency);
   };
 
   return (
     <div className="min-h-screen h-full w-full flex flex-col bg-gray-50">
       <header className="flex justify-between items-center border-b p-4 bg-white w-full">
         <h1 className="text-xl font-semibold">View/Edit DRM Policies</h1>
-        <HeaderButtons/>
+        <HeaderButtons bundle_name={bundleName} updatedBooks={premiumBooks} />
       </header>
 
       <div className="flex justify-end p-4 bg-white">
@@ -67,13 +69,19 @@ const ConcurrencyBookTable = () => {
         <TableHeader />
 
         <div className="w-full">
-          {books.map((book, index) => (
-            <BookRow
-              key={index}
-              book={book}
-              onUpdateConcurrency={(newConcurrency) => updateConcurrency(index, newConcurrency)}
-            />
-          ))}
+          {premiumBooks.length > 0 ? (
+            premiumBooks.map((book, index) => (
+              <BookRow
+                key={index}
+                book={book}
+                onUpdateConcurrency={(newConcurrency) =>
+                  handleConcurrencyChange(index, newConcurrency)
+                }
+              />
+            ))
+          ) : (
+            <p>No premium books available for concurrency edit.</p>
+          )}
         </div>
       </div>
 

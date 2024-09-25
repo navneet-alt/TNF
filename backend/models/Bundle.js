@@ -2,10 +2,9 @@
 const mongoose = require('mongoose');
 
 const bundleSchema = new mongoose.Schema({
-  bundle_name: { type: String, required: true },
-  books: [{ book_id: String, book_name: String, is_premium: Boolean }],
+  bundle_name: { type: String, required: true }
 });
 
-const Bundle = mongoose.model('Bundle', bundleSchema);
+const Bundle = mongoose.model('Bundle', bundleSchema, 'test');
 
 module.exports = Bundle;
