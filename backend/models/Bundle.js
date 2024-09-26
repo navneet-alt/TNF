@@ -6,6 +6,6 @@ const bundleSchema = new mongoose.Schema({
   
 });
 
-const Bundle = mongoose.model('Bundle', bundleSchema);
+const Bundle = mongoose.model('Bundle', bundleSchema, 'test');
 
 module.exports = Bundle;

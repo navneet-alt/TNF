@@ -4,12 +4,15 @@ import TableHeader from "./TableHeader";
 import HeaderButtons from "./HeaderButtons";
 import Modal from "./Modal";
 import { useBooks } from "../../BookContext";
+import { useNavigate } from "react-router-dom";
 
 const ConcurrencyBookTable = () => {
   const { books, setBooks } = useBooks();
+  const { setFilterType } = useBooks();
 
   const [isModalOpen, setModalOpen] = useState(false);
   const [bulkConcurrency, setBulkConcurrency] = useState("");
+  const navigate = useNavigate();
 
   const updateConcurrency = (bookName, newConcurrency) => {
     setBooks((prevBooks) => {
@@ -28,6 +31,22 @@ const ConcurrencyBookTable = () => {
       return updatedBooks; // Reflect changes back to original books
     });
   };
+
+  const handleBack = () => {
+    setBooks((prevBooks) => {
+      const updatedBooks = { ...prevBooks };
+      // Reset concurrency of premium books to 1
+      Object.keys(updatedBooks).forEach((key) => {
+        if (!isNaN(key) && updatedBooks[key].is_premium) {
+          updatedBooks[key].concurrency = 1; 
+        }
+      });
+      return updatedBooks;
+    });
+    setFilterType('premium');
+    navigate('/form'); 
+  };
+
   console.log(books);
 
   const handleBulkEdit = (newConcurrency) => {
@@ -55,7 +74,25 @@ const ConcurrencyBookTable = () => {
     <div className="min-h-screen h-full w-full flex flex-col bg-gray-50">
       <header className="flex justify-between items-center border-b p-4 bg-white w-full">
         <h1 className="text-xl font-semibold">View/Edit DRM Policies</h1>
-        <HeaderButtons  updatedBooks={books} />
+        {/* <HeaderButtons updatedBooks={books} /> */}
+        <div className="flex gap-x-2">
+        <button
+          onClick={() => {
+            setFilterType("premium"); // Set filterType to 'premium'
+            navigate("/form"); // Go back to form page
+          }}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          Save
+        </button>
+        <button onClick={handleBack} // Call handleBack on click
+          className="bg-red-500 text-white px-4 py-2 rounded"
+        >
+          Back
+        </button>
+      
+        </div>
+   
       </header>
 
       <div className="flex justify-end p-4 bg-white">

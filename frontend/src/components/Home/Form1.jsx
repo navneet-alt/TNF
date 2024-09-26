@@ -3,20 +3,44 @@ import axios from "axios";
 // import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useBooks }  from "../../BookContext"
+import { useContext, useEffect } from 'react';
  
 const Form = () => {
-  const [orderNumber, setOrderNumber] = useState();
-  const [licenseName, setLicenseName] = useState();
-  const [bundleName, setBundleName] = useState();
+
+  const { 
+    books, setBooks, 
+    orderNumber, setOrderNumber, 
+    licenseName, setLicenseName, 
+    bundleName, setBundleName,
+    filterType, setFilterType // Add filterType and setFilterType from context
+  } = useBooks();
+
+  //const [orderNumber, setOrderNumber] = useState();
+  //const [licenseName, setLicenseName] = useState();
+  //const [bundleName, setBundleName] = useState();
   const [originalBook, setOriginalBook] = useState([]);
-  const { books, setBooks } = useBooks();
+  //const { books, setBooks } = useBooks();
   const [suggestedBundles, setSuggestedBundles] = useState([]);
-  const [filterType, setFilterType] = useState("all"); // "all", "normal", "premium"
+  //const [filterType, setFilterType] = useState("all"); // "all", "normal", "premium"
   const [premiumBooksCount, setPremiumBooksCount] = useState(0);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  
+  const [displayedConcurrency, setDisplayedConcurrency] = useState('');
+  // Function to calculate and update displayedConcurrency
+  const updateDisplayedConcurrency = () => {
+    const premiumBooks = Object.values(books).filter(book => book.is_premium);
+    const uniqueConcurrency = new Set(premiumBooks.map(book => book.concurrency));
+    setDisplayedConcurrency(uniqueConcurrency.size === 1
+      ? Array.from(uniqueConcurrency)[0]
+      : "Title Specific"
+    );
+  };
+  // ...
+
+  useEffect(() => {
+    updateDisplayedConcurrency();
+  }, [books]);
  
   const handleSearch = async () => {
     try {
@@ -46,16 +70,6 @@ const Form = () => {
     }
   };
  
-  const handleSave = () => {
-    if (!orderNumber || !licenseName) {
-      alert("Please fill in all required fields: Order Number and License Name.");
-      return;
-    }
- 
-    // Handle your save logic here, for example:
-    console.log("Form saved with:", { orderNumber, licenseName, bundleName, books });
-  };
- 
   const handleBundleNameChange = async (e) => {
     const value = e.target.value;
     setBundleName(value);
@@ -71,6 +85,36 @@ const Form = () => {
     } else {
       setSuggestedBundles([]);
       setShowSuggestions(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!orderNumber || !licenseName) {
+      alert("Please fill in all required fields: Order Number and License Name.");
+      return;
+    }
+    const payload = {
+      licenseName: books.licenseName, // license name from state
+      orderNumber: books.orderNumber, // order number from state
+      books : Object.keys(books)
+      .filter(key => !isNaN(key)) // Ensure this only filters for numeric keys that represent books
+      .map(key => ({
+        book_id: books[key].book_id,      // Ensure this is included
+        book_name: books[key].book_name,  // Ensure this is included
+        is_premium: books[key].is_premium,  // Ensure this is included
+        concurrency: books[key].concurrency  // Ensure this is included
+      }))
+    };
+    try {
+      const response = await axios.post("http://localhost:5000/api/v1/create-license", payload,         {
+      }
+);
+      console.log("License created successfully:", response.data);
+      alert("License Created Successfully!");
+      navigate('/');
+    } catch (error) {
+      console.error("Error creating license:", error.response?.data || error.message);
+      alert("Failed to create license. Please try again.");
     }
   };
  
@@ -228,25 +272,25 @@ const Form = () => {
 
       {/* Policies Section - only show for premium */}
       {filterType === "premium" && (
-        <div className="policies mt-6 bg-blue-100 p-5 rounded-lg">
-          <div>
-            <p>{premiumBooksCount} titles are {bundleName ? bundleName : "Bundle"} protected. Please review/edit the titles</p>
+      <div className="policies mt-6 bg-blue-100 p-5 rounded-lg">
+        <div>
+          <p>{premiumBooksCount} titles are {bundleName ? bundleName : "Bundle"} protected. Please review/edit the titles</p>
+        </div>
+        <div className="extra-info mt-2">
+          <div className="info-item flex justify-between">
+            <p className="font-semibold">CONCURRENCY</p>
+            <p>{displayedConcurrency}</p> {/* Display calculated concurrency */}
           </div>
-          <div className="extra-info mt-2">
-            <div className="info-item flex justify-between">
-              <p className="font-semibold">CONCURRENCY</p>
-              <p>1</p>
-            </div>
-            <div className="info-item flex justify-between">
-              <p className="font-semibold">PRINT/COPY</p>
-              <p>{books.length}</p> {/* Total number of books in the bundle */}
-            </div>
-            <div className="flex justify-center align-items text-blue-900">
-              <button onClick={handleShare}> View/ Edit the Concurrency</button>
-            </div>
+          <div className="info-item flex justify-between">
+            <p className="font-semibold">PRINT/COPY</p>
+            <p>{Object.keys(books).length - 2}</p> {/* Show total number of books - 2 (orderNumber, licenseName) */}
+          </div>
+          <div className="flex justify-center align-items text-blue-900">
+            <button onClick={handleShare}> View/ Edit the Concurrency</button>
           </div>
         </div>
-      )}
+      </div>
+    )}
  
       <button
         type="button"
