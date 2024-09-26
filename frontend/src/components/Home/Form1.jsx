@@ -41,6 +41,18 @@ const Form = () => {
   useEffect(() => {
     updateDisplayedConcurrency();
   }, [books]);
+
+  // we you come back
+  useEffect(() => {
+    const premiumCount = Object.values(books).reduce((count, book) => {
+      if (typeof book === 'object' && book.is_premium) {
+        return count + 1;
+      }
+      return count;
+    }, 0);
+  
+    setPremiumBooksCount(premiumCount);
+  }, [bundleName, books]); 
  
   const handleSearch = async () => {
     try {
