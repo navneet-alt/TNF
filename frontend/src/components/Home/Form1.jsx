@@ -1,80 +1,66 @@
 import { useState } from "react";
 import axios from "axios";
+// import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-
+import { useBooks }  from "../../BookContext"
+ 
 const Form = () => {
-  const [orderNumber, setOrderNumber] = useState("");
-  const [licenseName, setLicenseName] = useState("");
-  const [bundleName, setBundleName] = useState("");
-  const [books, setBooks] = useState([]); // All fetched books
-  const [filteredBooks, setFilteredBooks] = useState([]); // Books based on filter
+  const [orderNumber, setOrderNumber] = useState();
+  const [licenseName, setLicenseName] = useState();
+  const [bundleName, setBundleName] = useState();
+  const [originalBook, setOriginalBook] = useState([]);
+  const { books, setBooks } = useBooks();
   const [suggestedBundles, setSuggestedBundles] = useState([]);
-  const [filterType, setFilterType] = useState(null); // Initially no filter
+  const [filterType, setFilterType] = useState("all"); // "all", "normal", "premium"
   const [premiumBooksCount, setPremiumBooksCount] = useState(0);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isSearchDone, setIsSearchDone] = useState(false); // New state to check if search is done
 
-  // New state variable to store concurrency values of premium books
-  const [concurrencyValues, setConcurrencyValues] = useState({});
-
-  const navigate = useNavigate();
-
+  
+ 
   const handleSearch = async () => {
     try {
       const response = await axios.post("http://localhost:5000/api/v1/search-bundle", {
         bundle_name: bundleName,
-      });
+        filter_type: filterType,
+      },
 
+    );
+ 
       const fetchedBooks = response.data;
-      setBooks(fetchedBooks); // Store all fetched books
-      setFilteredBooks(fetchedBooks); // Initialize filtered books with fetched books
+      // setBooks(fetchedBooks);
+      const updatedBooks = fetchedBooks;
+      setOriginalBook(fetchedBooks);
+      const updateBundle = {...updatedBooks, orderNumber, licenseName};
+     // console.log('test',extra)
+      setBooks(updateBundle);
 
+      //setBooks(updatedBooks);
+      
       const premiumCount = fetchedBooks.reduce((count, book) => {
         return book.is_premium ? count + 1 : count;
       }, 0);
       setPremiumBooksCount(premiumCount);
-      setIsSearchDone(true); // Mark that the search has been done
-
-      // Initialize concurrency values for premium books
-      const initialConcurrency = {};
-      fetchedBooks.forEach(book => {
-        if (book.is_premium) {
-          initialConcurrency[book.book_id] = 1; // Default concurrency value
-        }
-      });
-      setConcurrencyValues(initialConcurrency); // Set the initial concurrency values
     } catch (error) {
       console.error("Error while searching", error);
     }
   };
-
-  const filterBooks = (filterType) => {
-    let filtered;
-    if (filterType === "normal") {
-      filtered = books.filter((book) => !book.is_premium);
-    } else if (filterType === "premium") {
-      filtered = books.filter((book) => book.is_premium || !book.is_premium);
-    } else {
-      filtered = books;
-    }
-    setFilteredBooks(filtered); // Update filtered books state
-  };
-
+ 
   const handleSave = () => {
     if (!orderNumber || !licenseName) {
       alert("Please fill in all required fields: Order Number and License Name.");
       return;
     }
-
-    console.log("Form saved with:", { orderNumber, licenseName, bundleName, filteredBooks, concurrencyValues });
+ 
+    // Handle your save logic here, for example:
+    console.log("Form saved with:", { orderNumber, licenseName, bundleName, books });
   };
-
+ 
   const handleBundleNameChange = async (e) => {
     const value = e.target.value;
     setBundleName(value);
-
-    if (value.length >= 1) { // Trigger suggestions if input has 1 or more characters
+ 
+    if (value.length >= 1) {
       try {
         const response = await axios.get(`http://localhost:5000/api/v1/suggest-bundles?query=${value}`);
         setSuggestedBundles(response.data);
@@ -87,12 +73,12 @@ const Form = () => {
       setShowSuggestions(false);
     }
   };
-
+ 
   const handleSuggestionClick = (suggestion) => {
     setBundleName(suggestion.bundle_name);
     setShowSuggestions(false);
   };
-
+ 
   const handleKeyDown = (e) => {
     if (e.key === "ArrowDown") {
       setActiveSuggestionIndex((prevIndex) =>
@@ -105,30 +91,72 @@ const Form = () => {
     } else if (e.key === "Enter" && showSuggestions) {
       setBundleName(suggestedBundles[activeSuggestionIndex].bundle_name);
       setShowSuggestions(false);
-      e.preventDefault();
+      e.preventDefault(); // To prevent form submission on Enter
     }
   };
+ 
 
   const handleFilterClick = (type) => {
     setFilterType(type);
-    filterBooks(type); // Filter books when a filter type is selected
-  };
+    const currentBooks = [...originalBook];
 
-  const handleViewEditConcurrency = () => {
-    if (filterType === "premium" && premiumBooksCount > 0) {
-      navigate("/concurrency", { state: { books: filteredBooks, concurrencyValues, bundle_name: bundleName } });
+    if (type === "normal") {
+      // Filter only non-premium books and include orderNumber and licenseName
+      const filteredBooks = currentBooks.filter(book => !book.is_premium);
+      const updatedBooks = {...filteredBooks, orderNumber, licenseName};
+      setBooks(updatedBooks);
+    } else if (type === "premium") {
+      // Include all books along with orderNumber and licenseName
+      const updatedBooks = {...originalBook, orderNumber, licenseName};
+      setBooks(updatedBooks); 
     }
+  }
+  
+  const handleOrderChange = (e) => {
+      setOrderNumber(e.target.value);
+      const updateBundle = {...books, orderNumber : e.target.value};
+      setBooks(updateBundle);
+  }
+  const handleLicenseChange = (e) => {
+      setLicenseName(e.target.value);
+      const updateBundle = {...books, licenseName : e.target.value};
+      setBooks(updateBundle);
+  }
+ 
+  const navigate = useNavigate();
+  const handleShare = () => {
+    navigate("/Concurrency");
   };
-
-  const handleConcurrencyChange = (bookId, value) => {
-    setConcurrencyValues((prevValues) => ({
-      ...prevValues,
-      [bookId]: value, // Update concurrency for specific book
-    }));
-  };
-
+  
+  console.log(books);
+ 
   return (
     <div className="p-6 max-w-xl mx-auto bg-white shadow-md rounded-md">
+      {/* Filter Buttons */}
+      <div className="mt-4 flex gap-x-2 mb-3">
+        <button
+          className={`py-2 px-4 rounded-md transition duration-200 ${
+            filterType === "normal"
+              ? "bg-green-600 text-white hover:bg-green-700"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+          onClick={() => handleFilterClick("normal")}
+        >
+          Normal
+        </button>
+        <button
+          className={`py-2 px-4 rounded-md transition duration-200 ${
+            filterType === "premium"
+              ? "bg-yellow-600 text-white hover:bg-yellow-700"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+          onClick={() => handleFilterClick("premium")}
+        >
+          Premium
+        </button>
+      </div>
+ 
+      {/* Order Number and License Name */}
       <div className="form-container">
         <label className="form-label block mb-2 text-sm font-medium text-gray-700" htmlFor="orderNumber">
           Order Number <span className="text-red-500">*</span>
@@ -139,10 +167,10 @@ const Form = () => {
           id="orderNumber"
           placeholder="Enter Order Number"
           value={orderNumber}
-          onChange={(e) => setOrderNumber(e.target.value)}
+          onChange={handleOrderChange}
           required
         />
-
+ 
         <label className="form-label block mb-2 text-sm font-medium text-gray-700" htmlFor="licenseName">
           License Name <span className="text-red-500">*</span>
         </label>
@@ -152,11 +180,12 @@ const Form = () => {
           id="licenseName"
           placeholder="Enter License Name"
           value={licenseName}
-          onChange={(e) => setLicenseName(e.target.value)}
+          onChange={handleLicenseChange}
           required
         />
       </div>
-
+ 
+      {/* Bundle Name with Suggestions */}
       <div className="relative">
         <label className="form-label block mb-2 text-sm font-medium text-gray-700" htmlFor="bundleName">
           Bundle Name *
@@ -171,12 +200,15 @@ const Form = () => {
           onKeyDown={handleKeyDown}
           required
         />
+        {/* Suggestion Box */}
         {showSuggestions && suggestedBundles.length > 0 && (
-          <ul className="absolute z-10 bg-white border w-full rounded-md shadow-lg max-h-48 overflow-y-auto">
+          <ul className="absolute z-10 bg-white border border-gray-300 w-full rounded-md shadow-lg max-h-48 overflow-y-auto">
             {suggestedBundles.map((bundle, index) => (
               <li
                 key={index}
-                className={`p-2 cursor-pointer ${index === activeSuggestionIndex ? "bg-gray-200" : "bg-white"}`}
+                className={`p-2 cursor-pointer ${
+                  index === activeSuggestionIndex ? "bg-gray-200" : "bg-white"
+                }`}
                 onClick={() => handleSuggestionClick(bundle)}
               >
                 {bundle.bundle_name}
@@ -185,69 +217,40 @@ const Form = () => {
           </ul>
         )}
       </div>
-
+ 
       <button
         type="button"
-        className="w-full bg-blue-600 text-white font-semibold py-2 rounded-md hover:bg-blue-700 transition duration-200 mt-4"
+        className="search-button w-full bg-blue-600 text-white font-semibold py-2 rounded-md hover:bg-blue-700 transition duration-200 mt-4"
         onClick={handleSearch}
       >
         Search
       </button>
 
-      {isSearchDone && (
-        <div className="mt-4 flex gap-x-2 mb-3">
-          <button
-            className={`py-2 px-4 rounded-md transition duration-200 ${
-              filterType === "normal" ? "bg-green-600 text-white" : "bg-gray-200"
-            }`}
-            onClick={() => handleFilterClick("normal")}
-          >
-            Normal
-          </button>
-          <button
-            className={`py-2 px-4 rounded-md transition duration-200 ${
-              filterType === "premium" ? "bg-yellow-600 text-white" : "bg-gray-200"
-            }`}
-            onClick={() => handleFilterClick("premium")}
-          >
-            Premium
-          </button>
-        </div>
-      )}
-
-      {filterType && (
+      {/* Policies Section - only show for premium */}
+      {filterType === "premium" && (
         <div className="policies mt-6 bg-blue-100 p-5 rounded-lg">
-          {filterType === "premium" && (
-            <div>
-              <p>{premiumBooksCount} titles are protected. Please review/edit the titles</p>
-            </div>
-          )}
+          <div>
+            <p>{premiumBooksCount} titles are {bundleName ? bundleName : "Bundle"} protected. Please review/edit the titles</p>
+          </div>
           <div className="extra-info mt-2">
             <div className="info-item flex justify-between">
               <p className="font-semibold">CONCURRENCY</p>
-              <p>{filterType === "normal" ? "N/A" : "1"}</p> {/* Show N/A for normal filter */}
+              <p>1</p>
             </div>
             <div className="info-item flex justify-between">
               <p className="font-semibold">PRINT/COPY</p>
-              <p>{filteredBooks.length}</p>
+              <p>{books.length}</p> {/* Total number of books in the bundle */}
             </div>
-            <div className="flex justify-center text-blue-900">
-            {filterType === "premium" && (
-              <button onClick={handleViewEditConcurrency} className="underline">
-                View/Edit the Concurrency
-              </button>
-          )}
-             
+            <div className="flex justify-center align-items text-blue-900">
+              <button onClick={handleShare}> View/ Edit the Concurrency</button>
             </div>
           </div>
         </div>
       )}
-
-      
-
+ 
       <button
         type="button"
-        className="w-full bg-green-600 text-white font-semibold py-2 rounded-md hover:bg-green-700 transition duration-200 mt-4"
+        className="save-button w-full bg-green-600 text-white font-semibold py-2 rounded-md hover:bg-green-700 transition duration-200 mt-4"
         onClick={handleSave}
       >
         Save
@@ -255,5 +258,5 @@ const Form = () => {
     </div>
   );
 };
-
+ 
 export default Form;

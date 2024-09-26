@@ -1,56 +1,61 @@
-import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import BookRow from './BookRow';
-import TableHeader from './TableHeader';
-import HeaderButtons from './HeaderButtons';
-import Modal from './Modal';
+import { useState } from "react";
+import BookRow from "./BookRow";
+import TableHeader from "./TableHeader";
+import HeaderButtons from "./HeaderButtons";
+import Modal from "./Modal";
+import { useBooks } from "../../BookContext";
 
 const ConcurrencyBookTable = () => {
-  const location = useLocation();
-  const [books, setBooks] = useState(location.state?.books || []);
-  const [premiumBooks, setPremiumBooks] = useState([]);
+  const { books, setBooks } = useBooks();
+
   const [isModalOpen, setModalOpen] = useState(false);
   const [bulkConcurrency, setBulkConcurrency] = useState("");
 
-  const bundleName = location.state?.bundle_name || ""; // Retrieve bundle name from state
+  const updateConcurrency = (bookName, newConcurrency) => {
+    setBooks((prevBooks) => {
+      const updatedBooks = { ...prevBooks }; // Shallow copy of books object
 
-  // Filter premium books from the main books list
-  useEffect(() => {
-    const premiumOnlyBooks = books.filter((book) => book.is_premium);
-    setPremiumBooks(premiumOnlyBooks);
-  }, [books]);
+      // Find and update the correct book by name
+      Object.keys(updatedBooks).forEach((key) => {
+        if (!isNaN(key) && updatedBooks[key].book_name === bookName) {
+          updatedBooks[key] = {
+            ...updatedBooks[key],
+            concurrency: newConcurrency, // Update the concurrency value
+          };
+        }
+      });
 
-  const updateConcurrency = (index, newConcurrency) => {
-    setPremiumBooks((prevBooks) => {
-      const updatedBooks = [...prevBooks];
-      updatedBooks[index] = {
-        ...updatedBooks[index],
-        concurrency: newConcurrency,
-      };
-      return updatedBooks;
+      return updatedBooks; // Reflect changes back to original books
     });
   };
+  console.log(books);
 
   const handleBulkEdit = (newConcurrency) => {
     const numericValue = Number(newConcurrency);
     if (!isNaN(numericValue)) {
-      const updatedBooks = premiumBooks.map((book) => ({
-        ...book,
-        concurrency: numericValue,
-      }));
-      setPremiumBooks(updatedBooks);
-    }
-  };
+      setBooks((prevBooks) => {
+        const updatedBooks = { ...prevBooks }; // Shallow copy of books object
 
-  const handleConcurrencyChange = (index, newConcurrency) => {
-    updateConcurrency(index, newConcurrency);
+        // Apply bulk concurrency update only to premium books
+        Object.keys(updatedBooks).forEach((key) => {
+          if (!isNaN(key) && updatedBooks[key].is_premium) {
+            updatedBooks[key] = {
+              ...updatedBooks[key],
+              concurrency: numericValue,
+            };
+          }
+        });
+
+        return updatedBooks;
+      });
+    }
   };
 
   return (
     <div className="min-h-screen h-full w-full flex flex-col bg-gray-50">
       <header className="flex justify-between items-center border-b p-4 bg-white w-full">
         <h1 className="text-xl font-semibold">View/Edit DRM Policies</h1>
-        <HeaderButtons bundle_name={bundleName} updatedBooks={premiumBooks} />
+        <HeaderButtons  updatedBooks={books} />
       </header>
 
       <div className="flex justify-end p-4 bg-white">
@@ -69,19 +74,17 @@ const ConcurrencyBookTable = () => {
         <TableHeader />
 
         <div className="w-full">
-          {premiumBooks.length > 0 ? (
-            premiumBooks.map((book, index) => (
+          {Object.keys(books)
+            .filter((key) => !isNaN(key) && books[key].is_premium) // Filter only premium books
+            .map((key) => (
               <BookRow
-                key={index}
-                book={book}
+                key={books[key].book_name} // Use the book's name as a key
+                book={books[key]} // Pass the book object
                 onUpdateConcurrency={(newConcurrency) =>
-                  handleConcurrencyChange(index, newConcurrency)
-                }
+                  updateConcurrency(books[key].book_name, newConcurrency)
+                } // Pass book name and concurrency for update
               />
-            ))
-          ) : (
-            <p>No premium books available for concurrency edit.</p>
-          )}
+            ))}
         </div>
       </div>
 

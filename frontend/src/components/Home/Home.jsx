@@ -1,12 +1,37 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios"; // Ensure axios is imported
 
 export default function Home() {
   const navigate = useNavigate();
+  const [licenses, setLicenses] = useState([]); // State to hold licenses
+
   const navigater = () => {
     navigate("/form");
-  }
+  };
+
+  
+
+  // Fetch licenses on component mount
+  useEffect(() => {
+    const fetchLicenses = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/v1/licenses",);
+        setLicenses(response.data); // Set the fetched licenses to state
+      } catch (error) {
+        console.error("Error fetching licenses:", error);
+      }
+    };
+
+    fetchLicenses();
+  }, []); // Empty dependency array to run only on mount
+
+  const handleLicenseClick = (license) => {
+    navigate('/entitlements', { state: license }); // Pass the specific license object
+  };
+
   return (
     <div>
       <div>
@@ -21,17 +46,28 @@ export default function Home() {
         <table className="table-auto w-full bg-white rounded-lg">
           <thead>
             <tr className="bg-gray-200 text-left">
-              <th className="p-2 font-bold">ORDER NO.</th>
+              <th className="p-2 font-bold">LICENSE NUMBER</th> 
               <th className="p-2 font-bold">LICENSE NAME</th>
               <th className="p-2 font-bold">STATUS</th>
               <th className="p-2"></th>
             </tr>
           </thead>
           <tbody>
-            <tr className="border-b">
-              <h1>row data</h1>
-            </tr>
-            {/* Add more rows here */}
+            {licenses.map((license) => (
+              <tr key={license._id} className="border-b">
+                <td className="p-2">{license.orderNumber}</td>
+                <td className="p-2">
+                  <button onClick={() => handleLicenseClick(license)} className="text-blue-500 hover:underline">
+                    {license.licenseName}
+                  </button>
+                </td>
+                <td className="p-2">{license.books.length > 0 ? "Active" : ""}</td> 
+                <td className="p-2">
+                  <FontAwesomeIcon icon={faEllipsis} />
+                </td>
+              </tr>
+            ))}
+            {/* Add more rows here if needed */}
           </tbody>
         </table>
       </div>

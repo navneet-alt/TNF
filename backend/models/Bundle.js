@@ -2,9 +2,10 @@
 const mongoose = require('mongoose');
 
 const bundleSchema = new mongoose.Schema({
-  bundle_name: { type: String, required: true }
+  bundle_name: { type: String, required: true },
+  
 });
 
-const Bundle = mongoose.model('Bundle', bundleSchema, 'test');
+const Bundle = mongoose.model('Bundle', bundleSchema);
 
 module.exports = Bundle;
