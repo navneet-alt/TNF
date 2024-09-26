@@ -1,21 +1,26 @@
 const jwt = require('jsonwebtoken');
- 
-const verifyToken = (req, res, next) => {
-  const token = req.headers['authorization'];
- 
-  // Check if token is present
+
+require('dotenv').config();
+
+const authMiddleware = (req, res, next) => {
+  // Get token from headers
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  console.log(token)
+  
+
   if (!token) {
-    return res.status(403).json({ message: 'Access Denied: No Token Provided!' });
+    return res.status(401).json({ message: 'Access token missing' });
   }
- 
-  try {
-    // Verify the token
-    const decoded = jwt.verify(token.split(" ")[1], SECRET_KEY);
-    req.user = decoded; // You can pass the decoded data to the request object if needed
+
+  // Verify token
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => { // Ensure you have JWT_SECRET in your backend .env
+    if (err) {
+      return res.status(403).json({ message: 'Invalid or expired token' });
+    }
+    req.user = user; // Attach user info to request object
     next();
-  } catch (error) {
-    return res.status(401).json({ message: 'Invalid Token!' });
-  }
+  });
 };
- 
-module.exports = verifyToken;
+
+module.exports = authMiddleware;

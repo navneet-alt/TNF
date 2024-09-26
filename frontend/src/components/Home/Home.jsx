@@ -2,23 +2,25 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios"; // Ensure axios is imported
+import axiosInstance from "../../utils/axiosConfig";
 
 export default function Home() {
   const navigate = useNavigate();
   const [licenses, setLicenses] = useState([]); // State to hold licenses
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10; // Set to 2 entries per page
+
   const navigater = () => {
     navigate("/form");
   };
-
-  
 
   // Fetch licenses on component mount
   useEffect(() => {
     const fetchLicenses = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/v1/licenses",);
+        const response = await axiosInstance.get("http://localhost:5000/api/v1/licenses");
         setLicenses(response.data); // Set the fetched licenses to state
       } catch (error) {
         console.error("Error fetching licenses:", error);
@@ -32,44 +34,83 @@ export default function Home() {
     navigate('/entitlements', { state: license }); // Pass the specific license object
   };
 
+  // Calculate the current licenses based on pagination
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentLicenses = licenses.slice(startIndex, startIndex + itemsPerPage);
+
+  // Total pages calculation
+  const totalPages = Math.ceil(licenses.length / itemsPerPage);
+
   return (
-    <div>
-      <div>
-        <p className="text-2xl font-bold text-center my-4 text-gray-800">Book Renter</p>
-      </div>
-      <div className="p-4 max-w-6xl mx-auto bg-gray-100 rounded-lg shadow-lg">
-        <span className="block text-lg mb-4 font-bold text-gray-600">Book Licenses</span>
-        <div className="flex justify-end mb-4 space-x-2">
-          <button onClick={navigater} className="bg-blue-500 text-white py-2 px-4 text-sm rounded hover:bg-blue-700 transition-colors">CREATE NEW</button>
-          <button className="bg-blue-500 text-white py-2 px-4 text-sm rounded hover:bg-blue-700 transition-colors">DOWNLOAD AS CSV</button>
+    <div className="min-h-screen bg-gradient-to-b from-green-200 to-blue-300 py-8">
+      <div className="container mx-auto p-6 bg-white rounded-lg shadow-lg">
+        <p className="text-3xl font-bold text-center mb-6 text-gray-800">Book Renter</p>
+
+        <div className="flex justify-between mb-4">
+          <span className="block text-lg font-bold text-gray-600">Book Licenses</span>
+          <div className="flex space-x-2">
+            <button 
+              onClick={navigater} 
+              className="bg-blue-600 text-white py-2 px-4 text-sm rounded hover:bg-blue-700 transition-colors shadow-md"
+            >
+              CREATE NEW
+            </button>
+            <button className="bg-blue-600 text-white py-2 px-4 text-sm rounded hover:bg-blue-700 transition-colors shadow-md">
+              DOWNLOAD AS CSV
+            </button>
+          </div>
         </div>
-        <table className="table-auto w-full bg-white rounded-lg">
+
+        <table className="table-auto w-full bg-white rounded-lg shadow-md">
           <thead>
-            <tr className="bg-gray-200 text-left">
-              <th className="p-2 font-bold">LICENSE NUMBER</th> 
-              <th className="p-2 font-bold">LICENSE NAME</th>
-              <th className="p-2 font-bold">STATUS</th>
+            <tr className="bg-gray-300 text-left">
+              <th className="p-2 font-bold text-gray-700">LICENSE NUMBER</th> 
+              <th className="p-2 font-bold text-gray-700">LICENSE NAME</th>
+              <th className="p-2 font-bold text-gray-700">STATUS</th>
               <th className="p-2"></th>
             </tr>
           </thead>
           <tbody>
-            {licenses.map((license) => (
-              <tr key={license._id} className="border-b">
+            {currentLicenses.map((license) => (
+              <tr key={license._id} className="border-b transition-colors duration-300 hover:bg-gray-100">
                 <td className="p-2">{license.orderNumber}</td>
                 <td className="p-2">
-                  <button onClick={() => handleLicenseClick(license)} className="text-blue-500 hover:underline">
+                  <button 
+                    onClick={() => handleLicenseClick(license)} 
+                    className="text-blue-600 hover:underline font-semibold"
+                  >
                     {license.licenseName}
                   </button>
                 </td>
-                <td className="p-2">{license.books.length > 0 ? "Active" : ""}</td> 
+                <td className="p-2">{license.books.length > 0 ? "Active" : "Inactive"}</td> 
                 <td className="p-2">
-                  <FontAwesomeIcon icon={faEllipsis} />
+                  <FontAwesomeIcon icon={faEllipsis} className="text-gray-600 hover:text-blue-500 cursor-pointer" />
                 </td>
               </tr>
             ))}
-            {/* Add more rows here if needed */}
           </tbody>
         </table>
+
+        {/* Pagination Controls */}
+        <div className="flex justify-between p-4">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="bg-gray-300 text-gray-600 font-semibold px-5 py-2 rounded shadow hover:bg-gray-400 transition duration-200"
+          >
+            Previous
+          </button>
+          <span className="self-center">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="bg-gray-300 text-gray-600 font-semibold px-5 py-2 rounded shadow hover:bg-gray-400 transition duration-200"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );

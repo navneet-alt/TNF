@@ -1,5 +1,4 @@
 const Order = require('../models/orderModel');
-const Bundle = require('../models/Bundle');
 const LicenseSchema = require('../models/licenseModel');
 
 // Search for books by bundle name
@@ -63,7 +62,7 @@ const suggestByBundleName = async (req, res) => {
       return res.status(400).json({ error: 'Query parameter is required' });
     }
     try {
-      const bundles = await Bundle.find({
+      const bundles = await Order.find({
         bundle_name: { $regex: query, $options: 'i' } // Case-insensitive search
       });
   

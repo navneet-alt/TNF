@@ -3,7 +3,9 @@ import axios from "axios";
 // import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useBooks }  from "../../BookContext"
-import { useContext, useEffect } from 'react';
+import {  useEffect } from 'react';
+import { Link } from "react-router-dom";
+import axiosInstance from "../../utils/axiosConfig";
  
 const Form = () => {
 
@@ -26,7 +28,9 @@ const Form = () => {
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  const [displayedConcurrency, setDisplayedConcurrency] = useState('');
+  
+
+  const [displayedConcurrency, setDisplayedConcurrency] = useState('N/A');
   // Function to calculate and update displayedConcurrency
   const updateDisplayedConcurrency = () => {
     const premiumBooks = Object.values(books).filter(book => book.is_premium);
@@ -56,13 +60,12 @@ const Form = () => {
  
   const handleSearch = async () => {
     try {
-      const response = await axios.post("http://localhost:5000/api/v1/search-bundle", {
+      const response = await axiosInstance.post("http://localhost:5000/api/v1/search-bundle", {
         bundle_name: bundleName,
         filter_type: filterType,
       },
 
     );
- 
       const fetchedBooks = response.data;
       // setBooks(fetchedBooks);
       const updatedBooks = fetchedBooks;
@@ -80,6 +83,7 @@ const Form = () => {
     } catch (error) {
       console.error("Error while searching", error);
     }
+    
   };
  
   const handleBundleNameChange = async (e) => {
@@ -88,7 +92,7 @@ const Form = () => {
  
     if (value.length >= 1) {
       try {
-        const response = await axios.get(`http://localhost:5000/api/v1/suggest-bundles?query=${value}`);
+        const response = await axiosInstance.get(`http://localhost:5000/api/v1/suggest-bundles?query=${value}`);
         setSuggestedBundles(response.data);
         setShowSuggestions(true);
       } catch (error) {
@@ -118,7 +122,7 @@ const Form = () => {
       }))
     };
     try {
-      const response = await axios.post("http://localhost:5000/api/v1/create-license", payload,         {
+      const response = await axiosInstance.post("http://localhost:5000/api/v1/create-license", payload,         {
       }
 );
       console.log("License created successfully:", response.data);
@@ -166,6 +170,7 @@ const Form = () => {
       const updatedBooks = {...originalBook, orderNumber, licenseName};
       setBooks(updatedBooks); 
     }
+  
   }
   
   const handleOrderChange = (e) => {
@@ -187,8 +192,10 @@ const Form = () => {
   console.log(books);
  
   return (
-    <div className="p-6 max-w-xl mx-auto bg-white shadow-md rounded-md">
+     <div className="bg-gradient-to-b from-green-200 to-blue-300 h-screen flex justify-center items-center">
+      <div className="major p-6 min-w-[600px] min-h-[500px] bg-white shadow-md rounded-md bg-gradient-to-b from-purple-500 to-purple-200">
       {/* Filter Buttons */}
+      <div className="flex justify-between items-center">
       <div className="mt-4 flex gap-x-2 mb-3">
         <button
           className={`py-2 px-4 rounded-md transition duration-200 ${
@@ -211,6 +218,13 @@ const Form = () => {
           Premium
         </button>
       </div>
+
+      <Link to='/'>
+      <button className="bg-blue-600 text-white py-2 px-4 text-sm rounded hover:bg-blue-700 transition-colors shadow-md">Back</button>
+      </Link>
+
+      </div>
+
  
       {/* Order Number and License Name */}
       <div className="form-container">
@@ -218,13 +232,14 @@ const Form = () => {
           Order Number <span className="text-red-500">*</span>
         </label>
         <input
-          type="text"
+          type="number"
           className="form-input block w-full p-2 mb-4 border rounded-md border-gray-300"
           id="orderNumber"
           placeholder="Enter Order Number"
           value={orderNumber}
           onChange={handleOrderChange}
           required
+         
         />
  
         <label className="form-label block mb-2 text-sm font-medium text-gray-700" htmlFor="licenseName">
@@ -281,9 +296,7 @@ const Form = () => {
       >
         Search
       </button>
-
-      {/* Policies Section - only show for premium */}
-      {filterType === "premium" && (
+{   filterType === 'premium' && (
       <div className="policies mt-6 bg-blue-100 p-5 rounded-lg">
         <div>
           <p>{premiumBooksCount} titles are {bundleName ? bundleName : "Bundle"} protected. Please review/edit the titles</p>
@@ -291,18 +304,31 @@ const Form = () => {
         <div className="extra-info mt-2">
           <div className="info-item flex justify-between">
             <p className="font-semibold">CONCURRENCY</p>
-            <p>{displayedConcurrency}</p> {/* Display calculated concurrency */}
+            {
+              (Object.keys(books).length - 2 === 0) ? "N/A" :
+            
+          
+            (<p>{displayedConcurrency}</p>)
+            }
+            
           </div>
           <div className="info-item flex justify-between">
             <p className="font-semibold">PRINT/COPY</p>
             <p>{Object.keys(books).length - 2}</p> {/* Show total number of books - 2 (orderNumber, licenseName) */}
           </div>
-          <div className="flex justify-center align-items text-blue-900">
-            <button onClick={handleShare}> View/ Edit the Concurrency</button>
+          <div className="flex justify-center align-items text-blue-900 underline">
+          {
+            (Object.keys(books).length - 2 === 0) ? " " :
+            
+          
+            (<button onClick={handleShare}> View/ Edit the Concurrency</button>)
+          }
           </div>
         </div>
       </div>
-    )}
+    ) }
+
+    
  
       <button
         type="button"
@@ -312,6 +338,8 @@ const Form = () => {
         Save
       </button>
     </div>
+     </div>
+
   );
 };
  

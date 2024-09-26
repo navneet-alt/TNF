@@ -2,15 +2,28 @@ import React from "react";
 
 const BookRow = ({ book, onUpdateConcurrency }) => {
   const handleConcurrencyChange = (event) => {
-    const newConcurrency = Number(event.target.value);
-    if (!isNaN(newConcurrency) && newConcurrency >= 0) {
-      onUpdateConcurrency(newConcurrency); // Update the concurrency
+    const newConcurrency = event.target.value;
+
+    // Allow empty value (when backspacing)
+    if (newConcurrency === '') {
+      onUpdateConcurrency(''); // Allow empty input
+    } else {
+      // Ensure valid numeric input when not empty
+      const numericValue = Number(newConcurrency);
+      if (!isNaN(numericValue) && numericValue >= 1 && numericValue <= 100) {
+        onUpdateConcurrency(numericValue); // Update concurrency if value is between 1 and 100
+      } else if (numericValue > 1000) {
+        onUpdateConcurrency(1000); // If input is greater than 100, set to 100
+      }
     }
   };
 
   const handleKeyPress = (event) => {
     const key = event.which || event.keyCode;
-    if (key < 48 || key > 57) {
+    const keyChar = String.fromCharCode(key);
+  
+    // Prevent non-numeric characters, 'e', but allow numbers and backspace
+    if (keyChar === 'e' || key < 48 || key > 57) {
       event.preventDefault();
     }
   };
@@ -21,11 +34,14 @@ const BookRow = ({ book, onUpdateConcurrency }) => {
       <div>{book.is_premium ? "Premium" : "Standard"}</div>
       <div>
         <input
-          type="text" // Change to text for better control over keypress
+          type="number"
           className="border w-full p-1"
           value={book.concurrency}
           onChange={handleConcurrencyChange}
-          onKeyPress={handleKeyPress} // Add key press handler
+          onKeyPress={handleKeyPress}
+          min="1"
+          step="1"
+          max="100"
         />
       </div>
     </div>

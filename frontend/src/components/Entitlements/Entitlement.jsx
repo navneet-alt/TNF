@@ -1,36 +1,87 @@
-import React from "react";
-import { useLocation } from 'react-router-dom';
+import React, { useState } from "react";
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const LicenseDetails = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const license = location.state; // Access the specific license object
   
   if (!license) {
-    return <div>No license data found</div>; // Handle case where license is not found
+    return <div className="p-4 text-center text-red-500">No license data found</div>; // Handle case where license is not found
   }
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15; // Set to 15 entries per page
+
+  // Calculate the current books based on pagination
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentBooks = license.books.slice(startIndex, startIndex + itemsPerPage);
+
+  // Total pages calculation
+  const totalPages = Math.ceil(license.books.length / itemsPerPage);
+
   return (
-    <div className="p-4 max-w-6xl mx-auto bg-gray-100 rounded-lg shadow-lg">
-      <h1 className="text-2xl font-bold mb-4">License: {license.licenseName}</h1>
-      <h2 className="text-lg mb-2">Order Number: {license.orderNumber}</h2>
-      <table className="table-auto w-full bg-white rounded-lg">
-        <thead>
-          <tr className="bg-gray-200 text-left">
-            <th className="p-2 font-bold">Book Name</th>
-            <th className="p-2 font-bold">Is Premium</th>
-            <th className="p-2 font-bold">Concurrency</th>
-          </tr>
-        </thead>
-        <tbody>
-          {license.books.map((book) => (
-            <tr key={book._id} className="border-b">
-              <td className="p-2">{book.book_name}</td>
-              <td className="p-2">{book.is_premium ? "Yes" : "No"}</td>
-              <td className="p-2">{book.concurrency > 0 ? book.concurrency : "N/A"}</td>
+    <div className="min-h-screen bg-gradient-to-b from-green-200 to-blue-300 py-8">
+      <div className="p-6 max-w-6xl mx-auto bg-white rounded-lg shadow-lg">
+        <div className="flex justify-between items-center">
+          <div className="flex flex-col">
+            <h1 className="text-4xl font-bold mb-2 text-blue-800"> {license.licenseName}</h1>
+            <h2 className="text-2xl mb-4 text-gray-600 italic">Order Number: {license.orderNumber}</h2>
+          </div>
+          <button 
+            onClick={() => navigate("/")}
+            className="mb-4 inline-flex items-center px-4 py-3 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition duration-200"
+          >
+            Back
+          </button>
+        </div>
+        
+        <table className="table-auto w-full bg-gray-100 rounded-lg shadow-md">
+          <thead>
+            <tr className="bg-gray-300 text-left">
+              <th className="p-3 font-bold text-gray-700">Book Name</th>
+              <th className="p-3 font-bold text-gray-700">Is Premium</th>
+              <th className="p-3 font-bold text-gray-700">Concurrency</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {currentBooks.map((book) => (
+              <tr key={book._id} className="border-b transition-colors duration-300 hover:bg-gray-50">
+                <td className="p-3 text-gray-800">{book.book_name}</td>
+                <td className="p-3 text-white bg-orange-400">{book.is_premium ? "Yes" : "No"}</td>
+                <td className="p-3 text-gray-800 bg-green-400">{book.concurrency > 0 ? book.concurrency : "N/A"}</td>
+              </tr>
+            ))}
+            {currentBooks.length === 0 && (
+              <tr>
+                <td colSpan="3" className="p-3 text-center text-gray-500">No books available for this license.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+
+        {/* Pagination Controls */}
+        <div className="flex justify-between p-4">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="bg-gray-300 text-gray-600 font-semibold px-5 py-2 rounded shadow hover:bg-gray-400 transition duration-200"
+          >
+            Previous
+          </button>
+          <span className="self-center">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="bg-gray-300 text-gray-600 font-semibold px-5 py-2 rounded shadow hover:bg-gray-400 transition duration-200"
+          >
+            Next
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

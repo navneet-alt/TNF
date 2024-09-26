@@ -1,9 +1,11 @@
 
 const mongoose = require('mongoose');
 
+require("dotenv").config();
+
 const connectDB = async () => {
   try {
-    await mongoose.connect('mongodb+srv://navneetsneh:Navneet%402002@cluster0.uxgkc.mongodb.net/Aggregated_Data');
+    await mongoose.connect(process.env.MONGO_URI);
     console.log('MongoDB connection successful');
   } catch (error) {
     console.error('MongoDB connection failed:', error.message);
