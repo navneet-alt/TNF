@@ -126,25 +126,34 @@ const ConcurrencyBookTable = () => {
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-between p-6 bg-white">
-        <button
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-          className="bg-gray-300 text-gray-600 font-semibold px-5 py-2 rounded shadow hover:bg-gray-400 transition duration-200"
-        >
-          Previous
-        </button>
-        <span className="self-center">
-          Page {currentPage} of {totalPages}
-        </span>
-        <button
-          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-          disabled={currentPage === totalPages}
-          className="bg-gray-300 text-gray-600 font-semibold px-5 py-2 rounded shadow hover:bg-gray-400 transition duration-200"
-        >
-          Next
-        </button>
-      </div>
+    
+      <div className="flex justify-between items-center p-6 bg-white">
+  <button
+    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+    disabled={currentPage === 1}
+    className={`bg-gray-300 text-gray-600 font-semibold px-5 py-2 rounded shadow hover:bg-gray-400 transition duration-200 ${
+      currentPage === 1 ? 'hidden' : ''
+    }`}
+  >
+    Previous
+  </button>
+
+  <span className="flex-grow text-center">
+    Page {currentPage} of {totalPages}
+  </span>
+
+  <button
+    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+    disabled={currentPage === totalPages}
+    className={`bg-gray-300 text-gray-600 font-semibold px-5 py-2 rounded shadow hover:bg-gray-400 transition duration-200 ${
+      currentPage === totalPages ? 'hidden' : ''
+    }`}
+  >
+    Next
+  </button>
+</div>
+
+
 
       {/* Modal */}
       <Modal
