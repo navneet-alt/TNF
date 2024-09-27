@@ -5,13 +5,13 @@ const BookRow = ({ book, onUpdateConcurrency }) => {
     const newConcurrency = event.target.value;
 
     // Allow empty value (when backspacing)
-    {
+    if (newConcurrency === "") {
+      onUpdateConcurrency(""); // Allow empty input
+    } else {
       // Ensure valid numeric input when not empty
       const numericValue = Number(newConcurrency);
-      if (!isNaN(numericValue) && numericValue >= 1 && numericValue <= 100) {
+      if (!isNaN(numericValue) && numericValue >= 1 && numericValue <= 1000) {
         onUpdateConcurrency(numericValue); // Update concurrency if value is between 1 and 100
-      } else if (numericValue > 1000) {
-        onUpdateConcurrency(1000); // If input is greater than 100, set to 100
       }
     }
   };
@@ -19,9 +19,9 @@ const BookRow = ({ book, onUpdateConcurrency }) => {
   const handleKeyPress = (event) => {
     const key = event.which || event.keyCode;
     const keyChar = String.fromCharCode(key);
-  
-    // Prevent non-numeric characters, 'e', but allow numbers and backspace
-    if (keyChar === 'e' || key < 48 || key > 57) {
+
+    // Prevent non-numeric characters and 'e', but allow numbers and backspace
+    if (keyChar === "e" || key < 48 || key > 57) {
       event.preventDefault();
     }
   };

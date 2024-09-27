@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import BookRow from "./BookRow";
 import TableHeader from "./TableHeader";
 import Modal from "./Modal";
@@ -34,8 +34,6 @@ const ConcurrencyBookTable = () => {
     });
   };
 
-
-
   const handleBulkEdit = (newConcurrency) => {
     const numericValue = Number(newConcurrency);
     if (!isNaN(numericValue)) {
@@ -67,7 +65,20 @@ const ConcurrencyBookTable = () => {
     Object.keys(books).filter((key) => !isNaN(key) && books[key].is_premium).length / itemsPerPage
   );
 
-  
+  const handleSave = () => {
+    const hasEmptyConcurrency = Object.keys(books).some((key) => {
+      return books[key].is_premium && (books[key].concurrency === "" || books[key].concurrency === undefined);
+    });
+
+    if (hasEmptyConcurrency) {
+      alert("Please fill in the concurrency for all premium books before saving.");
+      return; // Prevent save if any concurrency is empty
+    }
+
+    // Proceed with the save action if all fields are valid
+    setFilterType("premium");
+    navigate("/form");
+  };
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-gradient-to-r from-gray-100 to-gray-200">
@@ -76,15 +87,11 @@ const ConcurrencyBookTable = () => {
         <h1 className="text-2xl font-bold text-white">View/Edit DRM Policies</h1>
         <div className="flex gap-x-3">
           <button
-            onClick={() => {
-              setFilterType("premium");
-              navigate("/form");
-            }}
+            onClick={handleSave}
             className="bg-white text-blue-600 font-semibold px-5 py-2 rounded shadow hover:bg-gray-100 transition duration-200"
           >
             Save
           </button>
-
         </div>
       </header>
 

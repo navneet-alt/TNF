@@ -313,7 +313,7 @@ const Form = () => {
           </div>
           <div className="info-item flex justify-between">
             <p className="font-semibold">PRINT/COPY</p>
-            <p>{Object.keys(books).length - 2}</p> {/* Show total number of books - 2 (orderNumber, licenseName) */}
+            <p>20</p> {/* Show total number of books - 2 (orderNumber, licenseName) */}
           </div>
           <div className="flex justify-center align-items text-blue-900 underline">
           {
