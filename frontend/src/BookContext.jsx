@@ -20,6 +20,7 @@ export const BooksProvider = ({ children }) => {
       licenseName, setLicenseName,
       bundleName, setBundleName,
       filterType, setFilterType // Add filterType and setFilterType
+    
     }}>
       {children}
     </BooksContext.Provider>

@@ -67,6 +67,8 @@ const ConcurrencyBookTable = () => {
     Object.keys(books).filter((key) => !isNaN(key) && books[key].is_premium).length / itemsPerPage
   );
 
+  
+
   return (
     <div className="min-h-screen w-full flex flex-col bg-gradient-to-r from-gray-100 to-gray-200">
       {/* Header */}

@@ -5,9 +5,7 @@ const BookRow = ({ book, onUpdateConcurrency }) => {
     const newConcurrency = event.target.value;
 
     // Allow empty value (when backspacing)
-    if (newConcurrency === '') {
-      onUpdateConcurrency(''); // Allow empty input
-    } else {
+    {
       // Ensure valid numeric input when not empty
       const numericValue = Number(newConcurrency);
       if (!isNaN(numericValue) && numericValue >= 1 && numericValue <= 100) {
@@ -42,6 +40,7 @@ const BookRow = ({ book, onUpdateConcurrency }) => {
           min="1"
           step="1"
           max="100"
+          required
         />
       </div>
     </div>

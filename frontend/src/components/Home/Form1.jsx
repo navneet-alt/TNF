@@ -1,5 +1,4 @@
 import { useState } from "react";
-import axios from "axios";
 // import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useBooks }  from "../../BookContext"
@@ -14,8 +13,7 @@ const Form = () => {
     orderNumber, setOrderNumber, 
     licenseName, setLicenseName, 
     bundleName, setBundleName,
-    filterType, setFilterType // Add filterType and setFilterType from context
-  } = useBooks();
+    filterType, setFilterType } = useBooks();
 
   //const [orderNumber, setOrderNumber] = useState();
   //const [licenseName, setLicenseName] = useState();
@@ -94,6 +92,7 @@ const Form = () => {
       try {
         const response = await axiosInstance.get(`http://localhost:5000/api/v1/suggest-bundles?query=${value}`);
         setSuggestedBundles(response.data);
+        console.log('response--',response.data)
         setShowSuggestions(true);
       } catch (error) {
         console.error("Error fetching suggestions", error);
@@ -165,10 +164,12 @@ const Form = () => {
       const filteredBooks = currentBooks.filter(book => !book.is_premium);
       const updatedBooks = {...filteredBooks, orderNumber, licenseName};
       setBooks(updatedBooks);
-    } else if (type === "premium") {
+    }
+     else if (type === "premium") {
       // Include all books along with orderNumber and licenseName
       const updatedBooks = {...originalBook, orderNumber, licenseName};
       setBooks(updatedBooks); 
+
     }
   
   }
@@ -187,13 +188,11 @@ const Form = () => {
   const navigate = useNavigate();
   const handleShare = () => {
     navigate("/Concurrency");
-  };
-  
-  console.log(books);
+  }; 
  
   return (
      <div className="bg-gradient-to-b from-green-200 to-blue-300 h-screen flex justify-center items-center">
-      <div className="major p-6 min-w-[600px] min-h-[500px] bg-white shadow-md rounded-md bg-gradient-to-b from-purple-500 to-purple-200">
+      <div className="major p-6 min-w-[600px] min-h-[500px] bg-white shadow-md rounded-md">
       {/* Filter Buttons */}
       <div className="flex justify-between items-center">
       <div className="mt-4 flex gap-x-2 mb-3">

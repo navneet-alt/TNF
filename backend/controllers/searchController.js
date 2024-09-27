@@ -57,20 +57,22 @@ const getLicenses = async (req, res) => {
 
 // Suggest bundles based on query
 const suggestByBundleName = async (req, res) => {
-    const { query } = req.query; // Get the query from the request
-    if (!query) {
-      return res.status(400).json({ error: 'Query parameter is required' });
-    }
-    try {
-      const bundles = await Order.find({
-        bundle_name: { $regex: query, $options: 'i' } // Case-insensitive search
-      });
+  const { query } = req.query; // Get the query from the request
+  if (!query) {
+    return res.status(400).json({ error: 'Query parameter is required' });
+  }
   
-      res.status(200).json(bundles); // Send bundles with a 200 status
-    } catch (error) {
-      console.error("Error fetching bundles:", error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  };
+  try {
+    const bundles = await Order.find(
+      { bundle_name: { $regex: query, $options: 'i' } } // Case-insensitive search
+    ).select('bundle_name'); // Only select the bundle_name field
+  
+    res.status(200).json(bundles); // Send bundles with a 200 status
+  } catch (error) {
+    console.error("Error fetching bundles:", error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
   
   module.exports = { searchByBundleName, suggestByBundleName, createLicense, getLicenses};
