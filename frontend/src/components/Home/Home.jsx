@@ -1,8 +1,9 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
+import { faTrash } from "@fortawesome/free-solid-svg-icons"; // Import delete icon
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axiosConfig";
+
 
 export default function Home() {
   const navigate = useNavigate();
@@ -10,7 +11,7 @@ export default function Home() {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // Set to 2 entries per page
+  const itemsPerPage = 10; // Set to 10 entries per page
 
   const navigater = () => {
     navigate("/form");
@@ -32,6 +33,18 @@ export default function Home() {
 
   const handleLicenseClick = (license) => {
     navigate('/entitlements', { state: license }); // Pass the specific license object
+  };
+
+  // Delete license
+  const handleDeleteLicense = async (licenseId) => {
+    try {
+      await axiosInstance.delete(`http://localhost:5000/api/v1/licenseDelete/${licenseId}`);
+      // Remove the deleted license from the state
+      setLicenses(licenses.filter(license => license._id !== licenseId));
+      alert('Successfully Deleted');
+    } catch (error) {
+      console.error("Error deleting license:", error);
+    }
   };
 
   // Calculate the current licenses based on pagination
@@ -84,7 +97,12 @@ export default function Home() {
                 </td>
                 <td className="p-2">{license.books.length > 0 ? "Active" : "Inactive"}</td> 
                 <td className="p-2">
-                  <FontAwesomeIcon icon={faEllipsis} className="text-gray-600 hover:text-blue-500 cursor-pointer" />
+                  <FontAwesomeIcon 
+                    icon={faTrash} 
+                    className="text-red-600 hover:text-red-500 cursor-pointer"
+                    onClick={() => handleDeleteLicense(license._id)} // Call delete function on click
+                  />
+                  
                 </td>
               </tr>
             ))}
@@ -93,30 +111,30 @@ export default function Home() {
 
         {/* Pagination Controls */}
         <div className="flex justify-between items-center p-6 bg-white">
-  <button
-    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-    disabled={currentPage === 1}
-    className={`bg-gray-300 text-gray-600 font-semibold px-5 py-2 rounded shadow hover:bg-gray-400 transition duration-200 ${
-      currentPage === 1 ? 'hidden' : ''
-    }`}
-  >
-    Previous
-  </button>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className={`bg-gray-300 text-gray-600 font-semibold px-5 py-2 rounded shadow hover:bg-gray-400 transition duration-200 ${
+              currentPage === 1 ? 'hidden' : ''
+            }`}
+          >
+            Previous
+          </button>
 
-  <span className="flex-grow text-center">
-    Page {currentPage} of {totalPages}
-  </span>
+          <span className="flex-grow text-center">
+            Page {currentPage} of {totalPages}
+          </span>
 
-  <button
-    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-    disabled={currentPage === totalPages}
-    className={`bg-gray-300 text-gray-600 font-semibold px-5 py-2 rounded shadow hover:bg-gray-400 transition duration-200 ${
-      currentPage === totalPages ? 'hidden' : ''
-    }`}
-  >
-    Next
-  </button>
-</div>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className={`bg-gray-300 text-gray-600 font-semibold px-5 py-2 rounded shadow hover:bg-gray-400 transition duration-200 ${
+              currentPage === totalPages ? 'hidden' : ''
+            }`}
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );

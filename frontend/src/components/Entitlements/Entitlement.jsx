@@ -26,7 +26,7 @@ const LicenseDetails = () => {
       <div className="p-6 max-w-6xl mx-auto bg-white rounded-lg shadow-lg">
         <div className="flex justify-between items-center">
           <div className="flex flex-col">
-            <h1 className="text-4xl font-bold mb-2 text-blue-800"> {license.licenseName}</h1>
+            <h1 className="text-4xl font-bold mb-2 text-blue-800"> <span className="text-red-800">License Name: </span>{license.licenseName}</h1>
             <h2 className="text-2xl mb-4 text-gray-600 italic">Order Number: {license.orderNumber}</h2>
           </div>
           <button 

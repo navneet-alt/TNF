@@ -7,14 +7,14 @@ import { Link } from "react-router-dom";
 import axiosInstance from "../../utils/axiosConfig";
  
 const Form = () => {
-
-  const { 
-    books, setBooks, 
-    orderNumber, setOrderNumber, 
-    licenseName, setLicenseName, 
+ 
+  const {
+    books, setBooks,
+    orderNumber, setOrderNumber,
+    licenseName, setLicenseName,
     bundleName, setBundleName,
     filterType, setFilterType } = useBooks();
-
+ 
   //const [orderNumber, setOrderNumber] = useState();
   //const [licenseName, setLicenseName] = useState();
   //const [bundleName, setBundleName] = useState();
@@ -25,9 +25,9 @@ const Form = () => {
   const [premiumBooksCount, setPremiumBooksCount] = useState(0);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
   const [showSuggestions, setShowSuggestions] = useState(false);
-
-  
-
+ 
+ 
+ 
   const [displayedConcurrency, setDisplayedConcurrency] = useState('N/A');
   // Function to calculate and update displayedConcurrency
   const updateDisplayedConcurrency = () => {
@@ -39,11 +39,11 @@ const Form = () => {
     );
   };
   // ...
-
+ 
   useEffect(() => {
     updateDisplayedConcurrency();
   }, [books]);
-
+ 
   // we you come back
   useEffect(() => {
     const premiumCount = Object.values(books).reduce((count, book) => {
@@ -52,9 +52,9 @@ const Form = () => {
       }
       return count;
     }, 0);
-  
+ 
     setPremiumBooksCount(premiumCount);
-  }, [bundleName, books]); 
+  }, [bundleName, books]);
  
   const handleSearch = async () => {
     try {
@@ -62,7 +62,7 @@ const Form = () => {
         bundle_name: bundleName,
         filter_type: filterType,
       },
-
+ 
     );
       const fetchedBooks = response.data;
       // setBooks(fetchedBooks);
@@ -71,17 +71,18 @@ const Form = () => {
       const updateBundle = {...updatedBooks, orderNumber, licenseName};
      // console.log('test',extra)
       setBooks(updateBundle);
-
+ 
       //setBooks(updatedBooks);
-      
+     
       const premiumCount = fetchedBooks.reduce((count, book) => {
         return book.is_premium ? count + 1 : count;
       }, 0);
       setPremiumBooksCount(premiumCount);
     } catch (error) {
       console.error("Error while searching", error);
+      alert("Please enter Bundle Name ☹");
     }
-    
+   
   };
  
   const handleBundleNameChange = async (e) => {
@@ -102,10 +103,14 @@ const Form = () => {
       setShowSuggestions(false);
     }
   };
-
+ 
   const handleSave = async () => {
     if (!orderNumber || !licenseName) {
       alert("Please fill in all required fields: Order Number and License Name.");
+      return;
+    }
+    if (filterType !== 'normal' && filterType !== 'premium') {
+      alert("Click on either Normal or premium button  to get the data saved.");
       return;
     }
     const payload = {
@@ -154,11 +159,11 @@ const Form = () => {
     }
   };
  
-
+ 
   const handleFilterClick = (type) => {
     setFilterType(type);
     const currentBooks = [...originalBook];
-
+ 
     if (type === "normal") {
       // Filter only non-premium books and include orderNumber and licenseName
       const filteredBooks = currentBooks.filter(book => !book.is_premium);
@@ -168,12 +173,12 @@ const Form = () => {
      else if (type === "premium") {
       // Include all books along with orderNumber and licenseName
       const updatedBooks = {...originalBook, orderNumber, licenseName};
-      setBooks(updatedBooks); 
-
+      setBooks(updatedBooks);
+ 
     }
-  
+ 
   }
-  
+ 
   const handleOrderChange = (e) => {
       setOrderNumber(e.target.value);
       const updateBundle = {...books, orderNumber : e.target.value};
@@ -188,7 +193,8 @@ const Form = () => {
   const navigate = useNavigate();
   const handleShare = () => {
     navigate("/Concurrency");
-  }; 
+  };
+  console.log(books);
  
   return (
      <div className="bg-gradient-to-b from-green-200 to-blue-300 h-screen flex justify-center items-center">
@@ -217,13 +223,13 @@ const Form = () => {
           Premium
         </button>
       </div>
-
+ 
       <Link to='/'>
       <button className="bg-blue-600 text-white py-2 px-4 text-sm rounded hover:bg-blue-700 transition-colors shadow-md">Back</button>
       </Link>
-
+ 
       </div>
-
+ 
  
       {/* Order Number and License Name */}
       <div className="form-container">
@@ -270,6 +276,21 @@ const Form = () => {
           onKeyDown={handleKeyDown}
           required
         />
+        {filterType === "normal" && (
+          <span>
+            <span className="font-semibold text-green-500">
+              Available : {(Object.keys(books).length - 2 - premiumBooksCount)}
+            </span>
+          </span>
+        )}
+        {filterType === "premium" && (
+          <span>
+            <span className="font-semibold text-green-500">
+              Available : {Object.keys(books).length - 2}
+            </span>
+          </span>
+        )}
+ 
         {/* Suggestion Box */}
         {showSuggestions && suggestedBundles.length > 0 && (
           <ul className="absolute z-10 bg-white border border-gray-300 w-full rounded-md shadow-lg max-h-48 overflow-y-auto">
@@ -305,11 +326,11 @@ const Form = () => {
             <p className="font-semibold">CONCURRENCY</p>
             {
               (Object.keys(books).length - 2 === 0) ? "N/A" :
-            
-          
+           
+         
             (<p>{displayedConcurrency}</p>)
             }
-            
+           
           </div>
           <div className="info-item flex justify-between">
             <p className="font-semibold">PRINT/COPY</p>
@@ -318,16 +339,16 @@ const Form = () => {
           <div className="flex justify-center align-items text-blue-900 underline">
           {
             (Object.keys(books).length - 2 === 0) ? " " :
-            
-          
+           
+         
             (<button onClick={handleShare}> View/ Edit the Concurrency</button>)
           }
           </div>
         </div>
       </div>
     ) }
-
-    
+ 
+   
  
       <button
         type="button"
@@ -338,7 +359,7 @@ const Form = () => {
       </button>
     </div>
      </div>
-
+ 
   );
 };
  

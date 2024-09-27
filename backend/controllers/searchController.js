@@ -74,5 +74,18 @@ const suggestByBundleName = async (req, res) => {
   }
 };
 
+//delete license
+const deleteLicense = async (req, res) => {
+  const { id } = req.params; // Extract ID from the request parameters
+  try {
+      const license = await LicenseSchema.findByIdAndDelete(id); // Delete license from the database
+      if (!license) {
+          return res.status(404).json({ message: 'License not found' }); // Handle case where license is not found
+      }
+      res.status(200).json({ message: 'License deleted successfully' }); // Success response
+  } catch (error) {
+      res.status(500).json({ message: 'Error deleting license', error }); // Handle server error
+  }
+};
   
-  module.exports = { searchByBundleName, suggestByBundleName, createLicense, getLicenses};
+  module.exports = { searchByBundleName, suggestByBundleName, createLicense, getLicenses, deleteLicense};
