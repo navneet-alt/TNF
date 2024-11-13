@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const LicenseDetails = () => {
@@ -49,15 +49,16 @@ const LicenseDetails = () => {
             {currentBooks.map((book) => (
               <tr key={book._id} className="border-b transition-colors duration-300 hover:bg-gray-50">
                 <td className="p-3 text-gray-800">{book.book_name}</td>
-                <td className="p-3 text-white bg-orange-400">{book.is_premium ? "Yes" : "No"}</td>
-                <td className="p-3 text-gray-800 bg-green-400">{book.concurrency > 0 ? book.concurrency : "N/A"}</td>
+                <td className="p-3 text-black bg-white">{book.is_premium ? "Yes" : "No"}</td>
+                <td className="p-3 text-gray-800 bg-white">{book.concurrency > 0 ? book.concurrency : "N/A"}</td>
               </tr>
             ))}
             {currentBooks.length === 0 && (
               <tr>
                 <td colSpan="3" className="p-3 text-center text-gray-500">No books available for this license.</td>
               </tr>
-            )}
+            )
+            }
           </tbody>
         </table>
 
